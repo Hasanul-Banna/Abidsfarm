@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const MongoClient = require('mongodb').MongoClient;
+const ObjectID = require('mongodb').ObjectID;
+
 require('dotenv').config()
 
 const app = express();
@@ -26,25 +28,35 @@ client.connect(err => {
         const email = req.body.email;
         UsersCollections.find({ email }).toArray((err, documents) =>
             // console.log(documents)
-            documents.length ? res.send({ isSuccess: false, message: 'user is already registered' }) : UsersCollections.insertOne(newUser).then(response => res.send({ isSuccess: true, message: 'user registered successfully' }))
+            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne(newUser).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
         )
     })
-    app.post('/makeAdmin', (req, res) => {
-        const email = req.body.email;
-        AdminCollection.insertOne(email).then(response => res.send({ isSuccess: true, message: 'Admin added successfully' }));
+    app.post('/make_admin', (req, res) => {
+        // const email = req.body.email;
+        // AdminCollection.insertOne(email).then(response => res.send({ isSuccess: true, message: 'Admin added successfully' }));
+
+        const _id = req.body.id;
+        UsersCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { role: req.body.role }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
     })
     app.post('/login', (req, res) => {
         const email = req.body.email;
         const password = req.body.password;
         UsersCollections.find({ email, password }).toArray((err, documents) =>
-            documents.length ? res.send({ isSuccess: true, message: 'login success', role: documents[0].role, user_info: documents[0] }) : res.send({ isSuccess: false, message: 'user is not registered or password is incorrect' })
+            documents.length ? res.send({ isSuccess: true, message: 'Login success', role: documents[0].role, user_info: documents[0] }) : res.send({ isSuccess: false, message: 'User is not registered or password is incorrect' })
         )
     })
     app.get('/users', (req, res) => {
         // res.send('users');
         UsersCollections.find({}).toArray((err, documents) => res.send(documents))
     })
-    //User &  Authentication block
+    //User &  Authentication block ends
+
     // app.get('/myBookings', (req, res) => {
     //     bookingCollection.find({ email: req.query.email }).toArray((err, documents) => res.send(documents))
     // })
