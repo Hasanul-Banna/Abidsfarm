@@ -37,7 +37,7 @@ client.connect(err => {
         const email = req.body.email;
         const password = req.body.password;
         UsersCollections.find({ email, password }).toArray((err, documents) =>
-            documents.length ? res.send({ isSuccess: true, message: 'login success', role: documents[0].role }) : res.send({ isSuccess: false, message: 'user is not registered' })
+            documents.length ? res.send({ isSuccess: true, message: 'login success', role: documents[0].role, user_info: documents[0] }) : res.send({ isSuccess: false, message: 'user is not registered or password is incorrect' })
         )
     })
     app.get('/users', (req, res) => {
