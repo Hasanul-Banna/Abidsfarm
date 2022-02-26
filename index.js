@@ -58,15 +58,15 @@ client.connect(err => {
     // seed  bank block starts
     app.post('/add_new_seed', (req, res) => {
         const name = req.body.name;
-        const category = req.body.id;
-        const stock = req.body.id;
-        const quantity = req.body.id;
+        const category = req.body.category;
+        const stock = req.body.stock;
+        const quantity = req.body.quantity;
 
         const file = req.files.file;
         const newImg = file.data;
         const encImg = newImg.toString('base64');
         var image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
-        
+
         SeedCollections.insertOne({ name, category, stock, quantity, image }).then(response => res.send({ isSuccess: true, message: 'seed is successfully added' }))
     })
 
@@ -84,9 +84,9 @@ client.connect(err => {
     app.post('/update_seed_info', (req, res) => {
         const _id = req.body.id;
         const name = req.body.name;
-        const category = req.body.id;
-        const stock = req.body.id;
-        const quantity = req.body.id;
+        const category = req.body.category;
+        const stock = req.body.stock;
+        const quantity = req.body.quantity;
 
         SeedCollections.updateOne({ _id: ObjectID(_id) },
             {
