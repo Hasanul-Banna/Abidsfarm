@@ -19,10 +19,11 @@ const uri = "mongodb+srv://abid:2a9KdKtmumDF98ij@cluster0.ytswv.mongodb.net/myFi
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 client.connect(err => {
-    // Database collections
+    // Database collections 
     const UsersCollections = client.db("iFarmer").collection("users");
-    const AdminCollection = client.db("iFarmer").collection("admins");
-    //User &  Authentication block
+    const SeedCollections = client.db("iFarmer").collection("seed_bank");
+
+    //User &  Authentication block starts
     app.post('/user_registration', (req, res) => {
         const newUser = req.body;
         const email = req.body.email;
@@ -32,9 +33,6 @@ client.connect(err => {
         )
     })
     app.post('/make_admin', (req, res) => {
-        // const email = req.body.email;
-        // AdminCollection.insertOne(email).then(response => res.send({ isSuccess: true, message: 'Admin added successfully' }));
-
         const _id = req.body.id;
         UsersCollections.updateOne({ _id: ObjectID(_id) },
             {
@@ -57,6 +55,49 @@ client.connect(err => {
     })
     //User &  Authentication block ends
 
+    // seed  bank block starts
+    app.post('/add_new_seed', (req, res) => {
+        const name = req.body.name;
+        const category = req.body.id;
+        const stock = req.body.id;
+        const quantity = req.body.id;
+
+        const file = req.files.file;
+        const newImg = file.data;
+        const encImg = newImg.toString('base64');
+        var image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
+        
+        SeedCollections.insertOne({ name, category, stock, quantity, image }).then(response => res.send({ isSuccess: true, message: 'seed is successfully added' }))
+    })
+
+    app.get('/all_seeds', (req, res) => {
+        SeedCollections.find({}).toArray((err, documents) => res.send(documents))
+    })
+
+    app.post('/delete_seed', (req, res) => {
+        const _id = req.body.id;
+        SeedCollections.deleteOne({ _id: ObjectID(_id) }).then(result => {
+            res.send({ isSuccess: result.deletedCount > 0 });
+        })
+    })
+
+    app.post('/update_seed_info', (req, res) => {
+        const _id = req.body.id;
+        const name = req.body.name;
+        const category = req.body.id;
+        const stock = req.body.id;
+        const quantity = req.body.id;
+
+        SeedCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { name, category, stock, quantity }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    // seed  bank block ends
+
     // app.get('/myBookings', (req, res) => {
     //     bookingCollection.find({ email: req.query.email }).toArray((err, documents) => res.send(documents))
     // })
@@ -71,7 +112,6 @@ client.connect(err => {
     //         })
     // });
     // app.post('/addRoom', (req, res) => {
-    //     const file = req.files.file;
     //     const id = req.body.id;
     //     const name = req.body.name;
     //     const address = req.body.address;
@@ -86,6 +126,7 @@ client.connect(err => {
     //     const Breakfast = req.body.Breakfast;
     //     const SwimmingPool = req.body.SwimmingPool;
     //     const Parking = req.body.Parking;
+    //     const file = req.files.file;
     //     const newImg = file.data;
     //     const encImg = newImg.toString('base64');
 
