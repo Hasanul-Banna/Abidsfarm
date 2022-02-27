@@ -22,6 +22,8 @@ client.connect(err => {
     // Database collections 
     const UsersCollections = client.db("iFarmer").collection("users");
     const SeedCollections = client.db("iFarmer").collection("seed_bank");
+    const CropCollections = client.db("iFarmer").collection("ecommerce");
+    const UpcomingCollections = client.db("iFarmer").collection("upcoming_product");
 
     //User &  Authentication block starts
     app.post('/user_registration', (req, res) => {
@@ -98,68 +100,84 @@ client.connect(err => {
     })
     // seed  bank block ends
 
-    // app.get('/myBookings', (req, res) => {
-    //     bookingCollection.find({ email: req.query.email }).toArray((err, documents) => res.send(documents))
-    // })
-    // app.get('/HotelData', (req, res) => {
-    //     roomsCollection.find({}).toArray((err, documents) => res.send(documents))
-    // })
-    // app.post('/isAdmin', (req, res) => {
-    //     const email = req.body.email;
-    //     AdminCollection.find({ email: email })
-    //         .toArray((err, Admin) => {
-    //             res.send(Admin.length > 0);
-    //         })
-    // });
-    // app.post('/addRoom', (req, res) => {
-    //     const id = req.body.id;
-    //     const name = req.body.name;
-    //     const address = req.body.address;
-    //     const bed = req.body.bed;
-    //     const bath = req.body.bath;
-    //     const price = req.body.price;
-    //     const flatSize = req.body.flatSize;
-    //     const location = req.body.location;
-    //     const RoomType = req.body.RoomType;
-    //     const TV = req.body.TV;
-    //     const Wifi = req.body.Wifi;
-    //     const Breakfast = req.body.Breakfast;
-    //     const SwimmingPool = req.body.SwimmingPool;
-    //     const Parking = req.body.Parking;
-    //     const file = req.files.file;
-    //     const newImg = file.data;
-    //     const encImg = newImg.toString('base64');
+    // CROPS block starts
+    app.post('/add_new_crop', (req, res) => {
+        const name = req.body.name;
+        const category = req.body.category;
+        const stock = req.body.stock;
+        const quantity = req.body.quantity;
 
-    //     var image = {
-    //         contentType: file.mimetype,
-    //         size: file.size,
-    //         img: Buffer.from(encImg, 'base64')
-    //     };
-    //     roomsCollection.insertOne({
-    //         image, name, id, address, bed, bath, price, flatSize, location,
-    //         RoomType, TV, Wifi, Breakfast, SwimmingPool, Parking
-    //     })
-    //         .then(result => {
-    //             res.send(result.insertedCount > 0);
-    //         })
-    // });
-    // app.delete('/delete/:id', (req, res) => {
-    //     const id = req.params.id;
-    //     roomsCollection.deleteOne({ id })
-    //         .then(result => {
-    //             res.send(result.deletedCount > 0);
-    //         })
-    // });
-    // app.patch('/update/:id', (req, res) => {
-    //     const id = req.params.id;
-    //     roomsCollection.updateOne({ id },
-    //         {
-    //             $set: { price: req.body.price }
-    //         })
-    //         .then(result => {
-    //             res.send(result.modifiedCount > 0)
-    //         })
-    // })
+        const file = req.files.file;
+        const newImg = file.data;
+        const encImg = newImg.toString('base64');
+        const image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
+
+        CropCollections.insertOne({ ...req.body, image }).then(response => res.send({ isSuccess: true, message: 'crop is successfully added' }))
+    })
+
+    app.get('/all_crops', (req, res) => {
+        CropCollections.find({}).toArray((err, documents) => res.send(documents))
+    })
+
+    app.post('/delete_crop', (req, res) => {
+        const _id = req.body.id;
+        CropCollections.deleteOne({ _id: ObjectID(_id) }).then(result => {
+            res.send({ isSuccess: result.deletedCount > 0 });
+        })
+    })
+
+    app.post('/update_crop_info', (req, res) => {
+        const _id = req.body.id;
+        const name = req.body.name;
+        const category = req.body.category;
+        const stock = req.body.stock;
+        const quantity = req.body.quantity;
+
+        CropCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { ...req.body }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    // CROPS  bank block ends
+
+    // Upcoming Collections block starts
+    app.post('/add_new_upcoming_product', (req, res) => {
+       
+        const file = req.files.file;
+        const newImg = file.data;
+        const encImg = newImg.toString('base64');
+        const image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
+
+        UpcomingCollections.insertOne({ ...req.body, image }).then(response => res.send({ isSuccess: true, message: 'product is successfully added' }))
+    })
+
+    app.get('/all_upcoming_products', (req, res) => {
+        UpcomingCollections.find({}).toArray((err, documents) => res.send(documents))
+    })
+
+    app.post('/delete_upcoming_product', (req, res) => {
+        const _id = req.body.id;
+        UpcomingCollections.deleteOne({ _id: ObjectID(_id) }).then(result => {
+            res.send({ isSuccess: result.deletedCount > 0 });
+        })
+    })
+
+    app.post('/update_upcoming_product_info', (req, res) => {
+        const _id = req.body.id;
+
+        UpcomingCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { ...req.body }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    //Upcoming Collections  block ends
+
 });
 
 app.get('/', (req, res) => {
