@@ -24,6 +24,9 @@ client.connect(err => {
     const SeedCollections = client.db("iFarmer").collection("seed_bank");
     const CropCollections = client.db("iFarmer").collection("ecommerce");
     const UpcomingCollections = client.db("iFarmer").collection("upcoming_product");
+    const PrebookCollections = client.db("iFarmer").collection("prebook");
+    const OrderCollections = client.db("iFarmer").collection("orders");
+    const ForumCollections = client.db("iFarmer").collection("forum");
 
     //User &  Authentication block starts
     app.post('/user_registration', (req, res) => {
@@ -145,7 +148,7 @@ client.connect(err => {
 
     // Upcoming Collections block starts
     app.post('/add_new_upcoming_product', (req, res) => {
-       
+
         const file = req.files.file;
         const newImg = file.data;
         const encImg = newImg.toString('base64');
@@ -174,9 +177,68 @@ client.connect(err => {
             })
             .then(result => {
                 res.send({ isSuccess: result.modifiedCount > 0 })
+
             })
     })
     //Upcoming Collections  block ends
+
+    //Prebook Collections  block starts
+    app.get('/all_prebookings', (req, res) => {
+        // res.send('users');
+        PrebookCollections.find({}).toArray((err, documents) => res.send(documents))
+    })
+    app.post('/prebook', (req, res) => {
+        PrebookCollections.insertOne({ ...req.body }).then(response => res.send({ isSuccess: true, message: 'prebooking success' }))
+    })
+    //Prebook Collections  block ends
+
+    //Order Collections  block starts
+    app.get('/order_lists', (req, res) => {
+        OrderCollections.find({}).toArray((err, documents) => res.send(documents))
+    })
+    app.post('/place_order', (req, res) => {
+        OrderCollections.insertOne({ ...req.body }).then(response => res.send({ isSuccess: true, message: 'order successfully placed' }))
+    })
+    app.post('/order_status_update', (req, res) => {
+        const _id = req.body.id;
+        const status = req.body.status;
+
+        OrderCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { status }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    //Order Collections  block ends
+
+    //Forum Collections  block starts
+    app.get('/all_forum_posts_with_comments', (req, res) => {
+        ForumCollections.find({}).toArray((err, documents) => res.send(documents))
+    })
+    app.post('/post_forum', (req, res) => {
+        const commments = req.body.commments;
+        const file = req.files.file;
+        const newImg = file.data;
+        const encImg = newImg.toString('base64');
+        const image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
+
+        ForumCollections.insertOne({ ...req.body, commments, image }).then(response => res.send({ isSuccess: true, message: 'post added to forum' }))
+    })
+    app.post('/add_comment_to_forum_post', (req, res) => {
+        const _id = req.body.id;
+        const commments = req.body.commments;
+
+        ForumCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { commments }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    //Forum Collections  block ends
 
 });
 
