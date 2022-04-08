@@ -27,6 +27,7 @@ client.connect(err => {
     const PrebookCollections = client.db("iFarmer").collection("prebook");
     const OrderCollections = client.db("iFarmer").collection("orders");
     const ForumCollections = client.db("iFarmer").collection("forum");
+    const BlogCollections = client.db("iFarmer").collection("Blog");
 
     //User &  Authentication block starts
     app.post('/user_registration', (req, res) => {
@@ -240,7 +241,68 @@ client.connect(err => {
                 res.send({ isSuccess: result.modifiedCount > 0 })
             })
     })
+    app.post('/delete_forum_post', (req, res) => {
+        const _id = req.body.id;
+        ForumCollections.deleteOne({ _id: ObjectID(_id) }).then(result => {
+            res.send({ isSuccess: result.deletedCount > 0 });
+        })
+    })
+    app.post('/update_forum_post', (req, res) => {
+        const _id = req.body.id;
+
+        ForumCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { ...req.body }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
     //Forum Collections  block ends
+    
+    //blog Collections  block starts
+    app.get('/all_blog_posts_with_comments', (req, res) => {
+        BlogCollections.find({}).toArray((err, documents) => res.send(documents))
+    })
+    app.post('/post_blog', (req, res) => {
+        const commments = req.body.commments;
+        const file = req.files.file;
+        const newImg = file.data;
+        const encImg = newImg.toString('base64');
+        const image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
+
+        BlogCollections.insertOne({ ...req.body, commments, image }).then(response => res.send({ isSuccess: true, message: 'post added to blog' }))
+    })
+    app.post('/add_comment_to_blog_post', (req, res) => {
+        const _id = req.body.id;
+        const commments = req.body.commments;
+
+        BlogCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { commments }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    app.post('/delete_blog_post', (req, res) => {
+        const _id = req.body.id;
+        BlogCollections.deleteOne({ _id: ObjectID(_id) }).then(result => {
+            res.send({ isSuccess: result.deletedCount > 0 });
+        })
+    })
+    app.post('/update_blog_post', (req, res) => {
+        const _id = req.body.id;
+
+        BlogCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { ...req.body }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    //blog Collections  block ends
 
 });
 
