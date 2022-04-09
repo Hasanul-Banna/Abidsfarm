@@ -31,12 +31,29 @@ client.connect(err => {
 
     //User &  Authentication block starts
     app.post('/user_registration', (req, res) => {
-        const newUser = req.body;
         const email = req.body.email;
+
+        const file = req.files.file;
+        const newImg = file.data;
+        const encImg = newImg.toString('base64');
+        var image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
+
         UsersCollections.find({ email }).toArray((err, documents) =>
             // console.log(documents)
-            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne(newUser).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
+            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne({ ...req.body, image }).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
         )
+    })
+    app.post('/update_user_balance', (req, res) => {
+        const _id = req.body.id;
+        const balance = req.body.balance;
+
+        UsersCollections.updateOne({ _id: ObjectID(_id) },
+            {
+                $set: { balance }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
     })
     app.post('/make_admin', (req, res) => {
         const _id = req.body.id;
@@ -259,7 +276,7 @@ client.connect(err => {
             })
     })
     //Forum Collections  block ends
-    
+
     //blog Collections  block starts
     app.get('/all_blog_posts_with_comments', (req, res) => {
         BlogCollections.find({}).toArray((err, documents) => res.send(documents))
