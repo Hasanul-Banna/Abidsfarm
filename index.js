@@ -40,7 +40,7 @@ client.connect(err => {
 
         UsersCollections.find({ email }).toArray((err, documents) =>
             // console.log(documents)
-            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne({ ...req.body, image }).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
+            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne({ ...req.body, image, balance }).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
         )
     })
     app.post('/update_user_balance', (req, res) => {
@@ -55,6 +55,18 @@ client.connect(err => {
                 res.send({ isSuccess: result.modifiedCount > 0 })
             })
     })
+    // app.post('/update_user_profile', (req, res) => {
+    //     const _id = req.body.id;
+    //     const balance = req.body.balance;
+
+    //     UsersCollections.updateOne({ _id: ObjectID(_id) },
+    //         {
+    //             $set: { balance }
+    //         })
+    //         .then(result => {
+    //             res.send({ isSuccess: result.modifiedCount > 0 })
+    //         })
+    // })
     app.post('/make_admin', (req, res) => {
         const _id = req.body.id;
         UsersCollections.updateOne({ _id: ObjectID(_id) },
@@ -217,15 +229,16 @@ client.connect(err => {
         OrderCollections.find({}).toArray((err, documents) => res.send(documents))
     })
     app.post('/place_order', (req, res) => {
-        OrderCollections.insertOne({ ...req.body }).then(response => res.send({ isSuccess: true, message: 'order successfully placed' }))
+        OrderCollections.insertOne({ ...req.body, cancel_reason: '' }).then(response => res.send({ isSuccess: true, message: 'order successfully placed' }))
     })
     app.post('/order_status_update', (req, res) => {
         const _id = req.body.id;
         const status = req.body.status;
+        const cancel_reason = req.body.cancel_reason;
 
         OrderCollections.updateOne({ _id: ObjectID(_id) },
             {
-                $set: { status }
+                $set: { status, cancel_reason }
             })
             .then(result => {
                 res.send({ isSuccess: result.modifiedCount > 0 })
