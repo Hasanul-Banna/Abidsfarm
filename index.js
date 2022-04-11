@@ -103,7 +103,7 @@ client.connect(err => {
         const encImg = newImg.toString('base64');
         var image = { contentType: file.mimetype, size: file.size, img: Buffer.from(encImg, 'base64') };
 
-        SeedCollections.insertOne({ name, category, stock, price, quantity, image }).then(response => res.send({ isSuccess: true, message: 'seed is successfully added' }))
+        SeedCollections.insertOne({ ...req.body, image }).then(response => res.send({ isSuccess: true, message: 'seed is successfully added' }))
     })
 
     app.get('/all_seeds', (req, res) => {
@@ -127,7 +127,7 @@ client.connect(err => {
 
         SeedCollections.updateOne({ _id: ObjectID(_id) },
             {
-                $set: { name, category, price, stock, quantity }
+                $set: { ...req.body }
             })
             .then(result => {
                 res.send({ isSuccess: result.modifiedCount > 0 })
