@@ -81,12 +81,20 @@ client.connect(err => {
         const email = req.body.email;
         const password = req.body.password;
         UsersCollections.find({ email, password }).toArray((err, documents) =>
-            documents.length ? res.send({ isSuccess: true, message: 'Login success', role: documents[0].role, user_info: documents[0] }) : res.send({ isSuccess: false, message: 'User is not registered or password is incorrect' })
+            documents.length ? res.send({
+                isSuccess: true, message: 'Login success', role: documents[0].role, user_info: documents.map(x => {
+                    delete x.password
+                    return x
+                })[0]
+            }) : res.send({ isSuccess: false, message: 'User is not registered or password is incorrect' })
         )
     })
     app.get('/users', (req, res) => {
         // res.send('users');
-        UsersCollections.find({}).toArray((err, documents) => res.send(documents))
+        UsersCollections.find({}).toArray((err, documents) => res.send(documents.map(x => {
+            delete x.password
+            return x
+        })))
     })
     //User &  Authentication block ends
 
