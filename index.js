@@ -4,6 +4,7 @@ const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
+var nodemailer = require('nodemailer');
 
 require('dotenv').config()
 
@@ -32,7 +33,7 @@ client.connect(err => {
     //User &  Authentication block starts
     app.post('/user_registration', (req, res) => {
         const email = req.body.email;
-
+        const OTP = Math.ceil(Math.random() * 1000000)
         const file = req.files.file;
         const newImg = file.data;
         const encImg = newImg.toString('base64');
@@ -40,7 +41,7 @@ client.connect(err => {
 
         UsersCollections.find({ email }).toArray((err, documents) =>
             // console.log(documents)
-            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne({ ...req.body, image, balance }).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
+            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne({ ...req.body, image, balance: 0, OTP }).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
         )
     })
     app.post('/update_user_balance', (req, res) => {
@@ -80,19 +81,64 @@ client.connect(err => {
     app.post('/login', (req, res) => {
         const email = req.body.email;
         const password = req.body.password;
+        const OTP = Math.ceil(Math.random() * 1000000)
+        UsersCollections.find({ email, password }).toArray((err, documents) => {
+            if (documents.length) {
+                UsersCollections.updateOne({ email },
+                    {
+                        $set: { OTP }
+                    })
+                // .then(result => {
+                //     res.send({ isSuccess: result.modifiedCount > 0 })
+                // })
+                var transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: 'hbdu006@gmail.com',
+                        pass: 'ljidirnxrwnrrxlw'
+                    }
+                });
+
+                var mailOptions = {
+                    from: 'humanabid@gmail.com',
+                    to: 'hasanulbanna006@gmail.com',
+                    subject: 'Organic Farm',
+                    text: `Your OTP is: ${OTP}`
+                };
+
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        console.log('Email sent: ' + info.response);
+                    }
+                });
+            }
+        }
+        )
+
         UsersCollections.find({ email, password }).toArray((err, documents) =>
             documents.length ? res.send({
                 isSuccess: true, message: 'Login success', role: documents[0].role, user_info: documents.map(x => {
                     delete x.password
+                    delete x.OTP
                     return x
                 })[0]
             }) : res.send({ isSuccess: false, message: 'User is not registered or password is incorrect' })
+        )
+    })
+    app.post('/validate_OTP', (req, res) => {
+        const email = req.body.email;
+        const OTP = req.body.OTP;
+        UsersCollections.find({ email, OTP }).toArray((err, documents) =>
+            documents.length ? res.send({ isSuccess: true, message: 'OTP is correct' }) : res.send({ isSuccess: false, message: 'OTP is incorrect' })
         )
     })
     app.get('/users', (req, res) => {
         // res.send('users');
         UsersCollections.find({}).toArray((err, documents) => res.send(documents.map(x => {
             delete x.password
+            delete x.OTP
             return x
         })))
     })
