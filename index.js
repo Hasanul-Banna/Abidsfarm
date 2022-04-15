@@ -100,9 +100,9 @@ client.connect(err => {
                 });
 
                 var mailOptions = {
-                    from: 'humanabid@gmail.com',
-                    to: 'hasanulbanna006@gmail.com',
-                    subject: 'Organic Farm',
+                    from: 'hbdu006@gmail.com',
+                    to: email,
+                    subject: 'Two factor authentication',
                     text: `Your OTP is: ${OTP}`
                 };
 
