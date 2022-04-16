@@ -29,8 +29,57 @@ client.connect(err => {
     const OrderCollections = client.db("iFarmer").collection("orders");
     const ForumCollections = client.db("iFarmer").collection("forum");
     const BlogCollections = client.db("iFarmer").collection("Blog");
+    const TempUsersOTPCollections = client.db("iFarmer").collection("tempUsersOTP");
 
     //User &  Authentication block starts
+    app.post('/send_otp_for_user_reg', (req, res) => {
+        const email = req.body.email;
+        const OTP = Math.ceil(Math.random() * 1000000)
+        TempUsersOTPCollections.find({ email }).toArray((err, documents) => {
+            if (!documents.length) {
+                TempUsersOTPCollections.updateOne({ email },
+                    {
+                        $set: { OTP }
+                    })
+                // .then(result => {
+                //     res.send({ isSuccess: result.modifiedCount > 0 })
+                // })
+                var transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: 'hbdu006@gmail.com',
+                        pass: 'ljidirnxrwnrrxlw'
+                    }
+                });
+
+                var mailOptions = {
+                    from: 'hbdu006@gmail.com',
+                    to: email,
+                    subject: 'Two factor authentication',
+                    text: `Your OTP is: ${OTP}`
+                };
+
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                        console.log(error);
+                        res.send(error)
+                    } else {
+                        res.send({ result: info.response })
+                        console.log('Email sent: ' + info.response);
+                    }
+                });
+            } else {
+                res.send({ isSuccess: false, message: 'Otp is already sent!, please check your email.' })
+            }
+        })
+    })
+    app.post('/validate_OTP_before_reg', (req, res) => {
+        const email = req.body.email;
+        const OTP = req.body.OTP;
+        TempUsersOTPCollections.find({ email, OTP }).toArray((err, documents) =>
+            documents.length ? res.send({ isSuccess: true, message: 'OTP is correct' }) : res.send({ isSuccess: false, message: 'OTP is incorrect' })
+        )
+    })
     app.post('/user_registration', (req, res) => {
         const email = req.body.email;
         const OTP = Math.ceil(Math.random() * 1000000)
