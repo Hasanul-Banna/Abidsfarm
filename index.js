@@ -81,8 +81,33 @@ client.connect(err => {
     app.post('/login', (req, res) => {
         const email = req.body.email;
         const password = req.body.password;
+
+        UsersCollections.find({ email, password }).toArray((err, documents) =>
+            documents.length ? res.send({
+                isSuccess: true, message: 'Login success', role: documents[0].role, user_info: documents.map(x => {
+                    delete x.password
+                    delete x.OTP
+                    return x
+                })[0]
+            }) : res.send({ isSuccess: false, message: 'User is not registered or password is incorrect' })
+        )
+    })
+    app.post('/set_new_password', (req, res) => {
+        const email = req.body.email;
+        const password = req.body.newPassword;
+
+        UsersCollections.updateOne({ email },
+            {
+                $set: { password }
+            })
+            .then(result => {
+                res.send({ isSuccess: result.modifiedCount > 0 })
+            })
+    })
+    app.post('/forget_password', (req, res) => {
+        const email = req.body.email;
         const OTP = Math.ceil(Math.random() * 1000000)
-        UsersCollections.find({ email, password }).toArray((err, documents) => {
+        UsersCollections.find({ email }).toArray((err, documents) => {
             if (documents.length) {
                 UsersCollections.updateOne({ email },
                     {
@@ -109,23 +134,16 @@ client.connect(err => {
                 transporter.sendMail(mailOptions, function (error, info) {
                     if (error) {
                         console.log(error);
+                        res.send(error)
                     } else {
+                        res.send({ result: info.response })
                         console.log('Email sent: ' + info.response);
                     }
                 });
+            } else {
+                res.send({ isSuccess: false, message: 'User is not registered' })
             }
-        }
-        )
-
-        UsersCollections.find({ email, password }).toArray((err, documents) =>
-            documents.length ? res.send({
-                isSuccess: true, message: 'Login success', role: documents[0].role, user_info: documents.map(x => {
-                    delete x.password
-                    delete x.OTP
-                    return x
-                })[0]
-            }) : res.send({ isSuccess: false, message: 'User is not registered or password is incorrect' })
-        )
+        })
     })
     app.post('/validate_OTP', (req, res) => {
         const email = req.body.email;
