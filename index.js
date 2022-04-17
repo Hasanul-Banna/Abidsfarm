@@ -37,10 +37,7 @@ client.connect(err => {
         const OTP = Math.ceil(Math.random() * 1000000)
         TempUsersOTPCollections.find({ email }).toArray((err, documents) => {
             if (!documents.length) {
-                TempUsersOTPCollections.updateOne({ email },
-                    {
-                        $set: { OTP }
-                    })
+                TempUsersOTPCollections.insertOne({ email, OTP })
                 // .then(result => {
                 //     res.send({ isSuccess: result.modifiedCount > 0 })
                 // })
