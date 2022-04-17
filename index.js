@@ -90,7 +90,7 @@ client.connect(err => {
 
         UsersCollections.find({ email }).toArray((err, documents) =>
             // console.log(documents)
-            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne({ ...req.body, image, balance: 0, OTP }).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
+            documents.length ? res.send({ isSuccess: false, message: 'User is already registered' }) : UsersCollections.insertOne({ ...req.body, image, balance: 0 }).then(response => res.send({ isSuccess: true, message: 'User registered successfully' }))
         )
     })
     app.post('/update_user_balance', (req, res) => {
