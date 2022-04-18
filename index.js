@@ -14,6 +14,11 @@ app.use(bodyParser.json());
 app.use(cors());
 // app.use(express.static('Rooms'));
 app.use(fileUpload());
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    next();
+});
 
 const port = 5000;
 const uri = "mongodb+srv://abid:2a9KdKtmumDF98ij@cluster0.ytswv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
